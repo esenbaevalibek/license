@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+  />
+  <title>Водительское удостоверение</title>
+
+  <meta name="theme-color" content="#0A66D9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Документ" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.png" />
+  <link rel="apple-touch-icon" href="./icon.png" />
+
+  <style>
+    :root {
+      --ios-blue: #0a66d9;
+      --ios-blue-dark: #085fc9;
+      --ios-white: #ffffff;
+      --ios-text: #000000;
+      --ios-sheet: #f2f2f7;
+      --ios-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+      --ios-card-radius: 30px;
+      --ios-ease: cubic-bezier(0.22, 0.8, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--ios-blue);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      touch-action: none;
+    }
+
+    body { color: var(--ios-white); }
+
+    img {
+      -webkit-user-drag: none;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    button { font: inherit; }
+
+    .app {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      min-height: 100vh;
+      background: linear-gradient(180deg, var(--ios-blue) 0%, var(--ios-blue-dark) 100%);
+      overflow: hidden;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      position: absolute;
+      inset: 0 0 auto 0;
+      z-index: 20;
+      padding-top: max(8px, env(safe-area-inset-top));
+    }
+
+    .nav-bar {
+      position: relative;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+    }
+
+    .back-button {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+
+    .back-button:active { opacity: 0.7; }
+
+    .back-button svg {
+      width: 21px;
+      height: 21px;
+      stroke: currentColor;
+      stroke-width: 2.7;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transform: translateX(-1px);
+    }
+
+    .title {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: #fff;
+      text-align: center;
+    }
+
+    /* ---- Scrollable page container ---- */
+    .page-scroll {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      will-change: transform;
+    }
+
+    /* ---- Card content area ---- */
+    .content {
+      padding-top: calc(env(safe-area-inset-top) + 68px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: 14px;
+      padding-right: 14px;
+      transition: filter 320ms ease, opacity 320ms ease;
+    }
+
+    .content.dimmed {
+      filter: blur(6px) brightness(0.7);
+      opacity: 0.6;
+    }
+
+    .slider-shell {
+      position: relative;
+      width: min(92vw, 420px);
+      aspect-ratio: 0.78 / 1;
+      max-height: 58vh;
+      user-select: none;
+      touch-action: none;
+      transform: translateX(14px);
+    }
+
+    .slider {
+      position: relative;
+      width: 90%;
+      height: 80%;
+      overflow: hidden;
+      border-radius: 34px;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+      z-index: 0;
+    }
+
+    .slide.on-top {
+      z-index: 1;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: var(--ios-card-radius);
+      overflow: hidden;
+      box-shadow: var(--ios-shadow);
+      background: transparent;
+    }
+
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      border-radius: var(--ios-card-radius);
+      background: #fff;
+    }
+
+    .page-number {
+      position: absolute;
+      bottom: 16px;
+      right: 20px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #333;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .page-indicator-wrap {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pagination {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 54px;
+      height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.45);
+      transition: transform 0.22s ease, background-color 0.22s ease;
+      opacity: 1;
+    }
+
+    .dot.active {
+      background: #ffffff;
+      transform: scale(1.15);
+    }
+
+    /* ---- Mini bottom sheet (collapsed) ---- */
+    .sheet-mini {
+      margin-top: 30px;
+      height: 240px;
+      background: var(--ios-sheet);
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+      position: relative;
+    }
+
+    .qr-holder {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translate(-50%, -46%);
+      width: 118px;
+      height: 118px;
+      border-radius: 999px;
+      background: var(--ios-sheet);
+      display: grid;
+      place-items: center;
+    }
+
+    .qr-circle {
+      width: 96px;
+      height: 96px;
+      border-radius: 999px;
+      background: #0a66d9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .qr-image-small {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .sheet-mini-content {
+      width: 100%;
+      height: 100%;
+      padding: 76px 24px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      color: var(--ios-text);
+    }
+
+    .sheet-text {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: #111;
+    }
+
+    /* ---- Expanded QR section (below mini sheet) ---- */
+    .qr-section {
+      background: var(--ios-sheet);
+      padding: 0 20px calc(40px + env(safe-area-inset-bottom));
+    }
+
+    .grab-handle {
+      width: 36px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.15);
+      margin: 0 auto 20px;
+    }
+
+    .qr-panel {
+      background: #fff;
+      border-radius: 24px;
+      padding: 28px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .qr-large {
+      width: min(240px, 52vw);
+      height: min(240px, 52vw);
+      object-fit: contain;
+    }
+
+    .timer-bar-track {
+      width: 100%;
+      height: 6px;
+      background: #e5e5ea;
+      border-radius: 999px;
+      margin-top: 22px;
+      overflow: hidden;
+    }
+
+    .timer-bar-fill {
+      height: 100%;
+      background: var(--ios-blue);
+      border-radius: 999px;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    .timer-text {
+      margin-top: 14px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--ios-blue);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .qr-info {
+      padding: 22px 4px 0;
+      color: var(--ios-text);
+    }
+
+    .qr-info-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .qr-info-desc {
+      margin: 8px 0 0;
+      font-size: 15px;
+      line-height: 1.4;
+      color: #444;
+      font-weight: 400;
+    }
+
+    .credentials {
+      display: flex;
+      gap: 24px;
+      margin-top: 18px;
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .credential { flex: 1; }
+
+    .credential-label {
+      font-size: 13px;
+      color: #888;
+      font-weight: 500;
+      margin: 0 0 2px;
+    }
+
+    .credential-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ios-text);
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .swipe-hint {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.72);
+      opacity: 0;
+      transition: opacity 240ms ease;
+      pointer-events: none;
+    }
+
+    .swipe-hint.show { opacity: 1; }
+
+    .install-banner {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: calc(env(safe-area-inset-top) + 58px);
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: none;
+      color: #fff;
+    }
+
+    .install-banner.show { display: block; }
+    .install-banner p { margin: 0; font-size: 13px; line-height: 1.35; }
+    .install-banner strong { display: block; margin-bottom: 4px; font-size: 14px; }
+
+    @media (max-width: 390px) {
+      .sheet-mini { height: 220px; }
+      .slider-shell { width: 93vw; }
+    }
+
+    @media (min-width: 768px) {
+      .slider-shell { width: min(54vw, 430px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="install-banner" id="installBanner">
+      <strong>Установка на iPhone</strong>
+      <p>Откройте меню «Поделиться» в Safari и выберите «На экран Домой».</p>
+    </div>
+
+    <header class="header">
+      <div class="nav-bar">
+        <button class="back-button" id="backButton" aria-label="Назад" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 5L8 12L15 19"></path>
+          </svg>
+        </button>
+        <h1 class="title">Водительское удостоверение</h1>
+      </div>
+    </header>
+
+    <!-- Everything scrolls together as one tall page -->
+    <div class="page-scroll" id="pageScroll">
+
+      <div class="content" id="content">
+        <div class="slider-shell">
+          <div class="slider" id="slider">
+            <section class="slide" data-index="0">
+              <div class="card">
+                <img src="./page1.png" alt="Первая страница документа" />
+                <span class="page-number">1</span>
+              </div>
+            </section>
+            <section class="slide" data-index="1">
+              <div class="card">
+                <img src="./page2.png" alt="Вторая страница документа" />
+                <span class="page-number">2</span>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="page-indicator-wrap">
+          <div class="pagination" id="pagination" aria-label="Индикатор страниц">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+          </div>
+        </div>
+
+        <div class="swipe-hint" id="swipeHint">Смахните влево или вправо</div>
+      </div>
+
+      <!-- Mini bottom sheet -->
+      <div class="sheet-mini">
+        <div class="qr-holder">
+          <div class="qr-circle">
+            <div class="qr-circle">
+              <img src="./qr.png" alt="QR Code" class="qr-image-small" />
+            </div>
+          </div>
+        </div>
+        <div class="sheet-mini-content">
+          <p class="sheet-text">Потяните для просмотра QR кода</p>
+        </div>
+      </div>
+
+      <!-- Expanded QR content (hidden below fold) -->
+      <div class="qr-section" id="qrSection">
+        <div class="grab-handle"></div>
+
+        <div class="qr-panel">
+          <img src="./qr.png" alt="QR Code" class="qr-large" />
+          <div class="timer-bar-track">
+            <div class="timer-bar-fill" id="timerBar"></div>
+          </div>
+          <p class="timer-text" id="timerText">До истечения действия временного QR-кода осталось<br>3 мин 00 секунд</p>
+        </div>
+
+        <div class="qr-info">
+          <h2 class="qr-info-title">QR-код цифрового документа</h2>
+          <p class="qr-info-desc">Чтобы поделиться данными необходимо сообщить следующую информацию:</p>
+        </div>
+
+        <div class="credentials">
+          <div class="credential">
+            <p class="credential-label">ПИН:</p>
+            <p class="credential-value">20401200300824</p>
+          </div>
+          <div class="credential">
+            <p class="credential-label">Временный пароль</p>
+            <p class="credential-value" id="tempPassword">------</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      const app = document.querySelector(".app");
+      const slider = document.getElementById("slider");
+      const slides = Array.from(slider.querySelectorAll(".slide"));
+      const dots = Array.from(document.querySelectorAll(".dot"));
+      const swipeHint = document.getElementById("swipeHint");
+      const backButton = document.getElementById("backButton");
+      const installBanner = document.getElementById("installBanner");
+      const pageScroll = document.getElementById("pageScroll");
+      const content = document.getElementById("content");
+      const qrSection = document.getElementById("qrSection");
+      const timerBar = document.getElementById("timerBar");
+      const timerText = document.getElementById("timerText");
+      const tempPasswordEl = document.getElementById("tempPassword");
+
+      const ANIM_MS = 360;
+      const EASE = "cubic-bezier(0.22, 0.8, 0.2, 1)";
+      const DIR_LOCK = 10;
+      const TIMER_DURATION = 180;
+
+      /* ============ SLIDER STATE ============ */
+
+      const state = {
+        current: 0,
+        startX: 0,
+        startY: 0,
+        deltaX: 0,
+        deltaY: 0,
+        dragging: false,
+        animating: false,
+        direction: null // 'h' | 'v' | 'page-scroll'
+      };
+
+      /* ============ PAGE SCROLL STATE ============ */
+
+      const scroll = {
+        offset: 0,       // current scroll Y offset (0 = top, negative = scrolled up)
+        maxTravel: 0,     // how far the page can scroll up
+        expanded: false,
+        dragging: false,
+        startY: 0,
+        deltaY: 0,
+        timerInterval: null,
+        remaining: TIMER_DURATION
+      };
+
+      function computeMaxTravel() {
+        scroll.maxTravel = qrSection.offsetHeight;
+      }
+
+      /* ============ SLIDER ============ */
+
+      function sliderWidth() { return slider.clientWidth; }
+      function sliderHeight() { return slider.clientHeight; }
+      function other() { return state.current === 0 ? 1 : 0; }
+
+      function setDots() {
+        dots.forEach((d, i) => d.classList.toggle("active", i === state.current));
+      }
+
+      function positionSlide(el, x, y, animate) {
+        el.style.transition = animate ? `transform ${ANIM_MS}ms ${EASE}` : "none";
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      }
+
+      function placeIdle() {
+        // Both cards at (0,0) — stacked. Current card on top.
+        positionSlide(slides[state.current], 0, 0, false);
+        positionSlide(slides[other()], 0, 0, false);
+        slides[state.current].classList.add("on-top");
+        slides[other()].classList.remove("on-top");
+        setDots();
+      }
+
+      /* ============ PAGE SCROLL ============ */
+
+      function setPageScroll(y, animate) {
+        pageScroll.style.transition = animate ? `transform 420ms ${EASE}` : "none";
+        pageScroll.style.transform = `translate3d(0, ${y}px, 0)`;
+        scroll.offset = y;
+
+        // Blur card proportionally
+        const progress = Math.min(1, Math.abs(y) / (scroll.maxTravel * 0.5));
+        if (progress > 0.05) {
+          content.style.filter = `blur(${progress * 6}px) brightness(${1 - progress * 0.3})`;
+          content.style.opacity = String(1 - progress * 0.4);
+        } else {
+          content.style.filter = "";
+          content.style.opacity = "";
+        }
+      }
+
+      function snapExpanded(animate) {
+        scroll.expanded = true;
+        setPageScroll(-scroll.maxTravel, animate);
+        startTimer();
+      }
+
+      function snapCollapsed(animate) {
+        scroll.expanded = false;
+        setPageScroll(0, animate);
+      }
+
+      /* ============ UNIFIED TOUCH ============ */
+
+      function isInSlider(target) {
+        return slider.contains(target);
+      }
+
+      function onStart(cx, cy, target) {
+        if (state.animating) return;
+
+        state.startX = cx;
+        state.startY = cy;
+        state.deltaX = 0;
+        state.deltaY = 0;
+        state.direction = null;
+        state.dragging = true;
+
+        computeMaxTravel();
+      }
+
+      function onMove(cx, cy) {
+        if (!state.dragging) return;
+
+        state.deltaX = cx - state.startX;
+        state.deltaY = cy - state.startY;
+        const ax = Math.abs(state.deltaX);
+        const ay = Math.abs(state.deltaY);
+
+        // Lock direction
+        if (!state.direction) {
+          if (ax < DIR_LOCK && ay < DIR_LOCK) return;
+
+          if (ax >= ay) {
+            // Horizontal → card swipe (only when not expanded)
+            if (!scroll.expanded) {
+              state.direction = "h";
+            } else {
+              state.dragging = false;
+              return;
+            }
+          } else {
+            // Vertical — decide: card page-switch or page-scroll?
+            // If expanded, always page-scroll (to allow collapsing)
+            // If collapsed and touch started on slider area, it's a card vertical swipe
+            // If collapsed and touch started outside slider, it's page-scroll
+            const sliderRect = slider.getBoundingClientRect();
+            const touchedSlider = (
+              state.startX >= sliderRect.left && state.startX <= sliderRect.right &&
+              state.startY >= sliderRect.top && state.startY <= sliderRect.bottom
+            );
+
+            if (scroll.expanded) {
+              state.direction = "page-scroll";
+            } else if (touchedSlider) {
+              state.direction = "v";
+            } else {
+              state.direction = "page-scroll";
+            }
+          }
+        }
+
+        if (state.direction === "h") {
+          // Only the top card moves; the other stays at (0,0) underneath
+          positionSlide(slides[state.current], state.deltaX, 0, false);
+        } else if (state.direction === "v") {
+          positionSlide(slides[state.current], 0, state.deltaY, false);
+        } else if (state.direction === "page-scroll") {
+          let newY;
+          if (scroll.expanded) {
+            newY = -scroll.maxTravel + state.deltaY;
+            // Clamp: can't go above 0 (collapsed), rubber-band if overscrolled up
+            if (newY > 0) newY = newY * 0.3;
+            if (newY < -scroll.maxTravel) newY = -scroll.maxTravel + (newY + scroll.maxTravel) * 0.3;
+          } else {
+            newY = state.deltaY;
+            // Only allow upward pull (negative). Rubber-band for downward
+            if (newY > 0) newY = newY * 0.3;
+            if (newY < -scroll.maxTravel) newY = -scroll.maxTravel + (newY + scroll.maxTravel) * 0.3;
+          }
+          setPageScroll(newY, false);
+        }
+      }
+
+      function onEnd() {
+        if (!state.dragging) return;
+        state.dragging = false;
+
+        if (state.direction === "h") {
+          const w = sliderWidth();
+          const shouldSwitch = Math.abs(state.deltaX) > w * 0.2;
+          state.animating = true;
+          if (shouldSwitch) {
+            // Animate top card off-screen, other is already at (0,0)
+            positionSlide(slides[state.current], (state.deltaX < 0 ? -1 : 1) * w, 0, true);
+            state.current = other();
+            setDots();
+          } else {
+            // Bounce top card back
+            positionSlide(slides[state.current], 0, 0, true);
+          }
+          setTimeout(() => { state.animating = false; placeIdle(); }, ANIM_MS + 20);
+
+        } else if (state.direction === "v") {
+          const h = sliderHeight();
+          const shouldSwitch = Math.abs(state.deltaY) > h * 0.2;
+          state.animating = true;
+          if (shouldSwitch) {
+            positionSlide(slides[state.current], 0, (state.deltaY < 0 ? -1 : 1) * h, true);
+            state.current = other();
+            setDots();
+          } else {
+            positionSlide(slides[state.current], 0, 0, true);
+          }
+          setTimeout(() => { state.animating = false; placeIdle(); }, ANIM_MS + 20);
+
+        } else if (state.direction === "page-scroll") {
+          const threshold = scroll.maxTravel * 0.2;
+          if (scroll.expanded) {
+            if (state.deltaY > threshold) {
+              snapCollapsed(true);
+            } else {
+              snapExpanded(true);
+            }
+          } else {
+            if (state.deltaY < -threshold) {
+              snapExpanded(true);
+            } else {
+              snapCollapsed(true);
+            }
+          }
+        }
+
+        state.direction = null;
+      }
+
+      /* ============ EVENTS ============ */
+
+      app.addEventListener("touchstart", (e) => {
+        if (e.touches.length !== 1) return;
+        onStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+      }, { passive: true });
+
+      app.addEventListener("touchmove", (e) => {
+        if (e.touches.length !== 1) return;
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+        if (state.direction === "page-scroll" || state.direction === "v") {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      app.addEventListener("touchend", onEnd);
+      app.addEventListener("touchcancel", onEnd);
+
+      app.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        onStart(e.clientX, e.clientY, e.target);
+      });
+      window.addEventListener("mousemove", (e) => onMove(e.clientX, e.clientY));
+      window.addEventListener("mouseup", onEnd);
+      window.addEventListener("mouseleave", onEnd);
+
+      /* ============ DOT CLICKS ============ */
+
+      dots.forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const target = Number(dot.dataset.index);
+          if (target === state.current || state.animating) return;
+          state.animating = true;
+          const w = sliderWidth();
+          // Target is already at (0,0) underneath. Slide current card off.
+          positionSlide(slides[state.current], -w, 0, true);
+          state.current = target;
+          setDots();
+          setTimeout(() => { state.animating = false; placeIdle(); }, ANIM_MS + 20);
+        });
+      });
+
+      backButton.addEventListener("click", () => {
+        if (scroll.expanded) { snapCollapsed(true); return; }
+        if (window.history.length > 1) window.history.back();
+      });
+
+      /* ============ TIMER & PASSWORD ============ */
+
+      function generatePassword() {
+        return String(Math.floor(100000 + Math.random() * 900000));
+      }
+
+      function updateTimerDisplay() {
+        const mins = Math.floor(scroll.remaining / 60);
+        const secs = scroll.remaining % 60;
+        timerText.innerHTML = `До истечения действия временного QR-кода осталось<br>${mins} мин ${String(secs).padStart(2, "0")} секунд`;
+        timerBar.style.width = `${(scroll.remaining / TIMER_DURATION) * 100}%`;
+      }
+
+      function startTimer() {
+        if (scroll.timerInterval) return;
+        scroll.remaining = TIMER_DURATION;
+        tempPasswordEl.textContent = generatePassword();
+        updateTimerDisplay();
+
+        scroll.timerInterval = setInterval(() => {
+          scroll.remaining--;
+          if (scroll.remaining <= 0) {
+            scroll.remaining = TIMER_DURATION;
+            tempPasswordEl.textContent = generatePassword();
+          }
+          updateTimerDisplay();
+        }, 1000);
+      }
+
+      /* ============ UTILS ============ */
+
+      function showHint() {
+        if (!swipeHint) return;
+        swipeHint.classList.add("show");
+        setTimeout(() => swipeHint.classList.remove("show"), 1800);
+      }
+
+      function initInstallBanner() {
+        if (!installBanner) return;
+        const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+        if (isIOS && !(window.navigator.standalone === true)) {
+          installBanner.classList.add("show");
+          setTimeout(() => installBanner.classList.remove("show"), 5000);
+        }
+      }
+
+      async function registerSW() {
+        if ("serviceWorker" in navigator) {
+          try {
+            await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+          } catch (err) {
+            console.error("SW registration failed:", err);
+          }
+        }
+      }
+
+      window.addEventListener("resize", () => {
+        computeMaxTravel();
+        placeIdle();
+        if (scroll.expanded) snapExpanded(false);
+        else snapCollapsed(false);
+      });
+
+      window.addEventListener("orientationchange", () => {
+        setTimeout(() => {
+          computeMaxTravel();
+          placeIdle();
+          if (scroll.expanded) snapExpanded(false);
+          else snapCollapsed(false);
+        }, 150);
+      });
+
+      window.addEventListener("load", async () => {
+        state.current = 0;
+        placeIdle();
+        computeMaxTravel();
+        snapCollapsed(false);
+        setTimeout(showHint, 500);
+        initInstallBanner();
+        await registerSW();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "Водительское удостоверение",
+  "short_name": "Документ",
+  "description": "PWA-документ со свайпом между двумя страницами",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0A66D9",
+  "theme_color": "#0A66D9",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
