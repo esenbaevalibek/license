@@ -28,6 +28,7 @@
       --ios-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
       --ios-card-radius: 30px;
       --ios-ease: cubic-bezier(0.22, 0.8, 0.2, 1);
+      --peek: 160px; /* how much of sheet is visible when collapsed */
     }
 
     * {
@@ -120,25 +121,20 @@
       text-align: center;
     }
 
-    /* ---- Scrollable page container ---- */
-    .page-scroll {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      will-change: transform;
-    }
-
-    /* ---- Card content area ---- */
+    /* ---- Card content area (stays fixed) ---- */
     .content {
-      padding-top: calc(env(safe-area-inset-top) + 68px);
+      position: absolute;
+      inset: 0;
+      padding-top: calc(max(8px, env(safe-area-inset-top)) + 52px + 16px);
+      padding-bottom: var(--peek);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       padding-left: 14px;
       padding-right: 14px;
       transition: filter 320ms ease, opacity 320ms ease;
+      will-change: filter, opacity;
     }
 
     .content.dimmed {
@@ -146,6 +142,7 @@
       opacity: 0.6;
     }
 
+    /* ---- Card slider ---- */
     .slider-shell {
       position: relative;
       width: min(90vw, 420px);
@@ -174,9 +171,7 @@
       z-index: 0;
     }
 
-    .slide.on-top {
-      z-index: 1;
-    }
+    .slide.on-top { z-index: 1; }
 
     .card {
       position: relative;
@@ -235,7 +230,6 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.4);
       transition: transform 0.22s ease, background-color 0.22s ease;
-      opacity: 1;
     }
 
     .dot.active {
@@ -243,73 +237,48 @@
       transform: scale(1.1);
     }
 
-    /* ---- Mini bottom sheet (collapsed) ---- */
-    .sheet-mini {
-      margin-top: 30px;
-      height: 240px;
+    .swipe-hint {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.72);
+      opacity: 0;
+      transition: opacity 240ms ease;
+      pointer-events: none;
+    }
+
+    .swipe-hint.show { opacity: 1; }
+
+    /* ---- Bottom Sheet ---- */
+    .bottom-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      /* Sheet is tall enough to hold all content */
+      height: 72vh;
       background: var(--ios-sheet);
       border-top-left-radius: 30px;
       border-top-right-radius: 30px;
-      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
-      position: relative;
-    }
-
-    .qr-holder {
-      position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translate(-50%, -46%);
-      width: 118px;
-      height: 118px;
-      border-radius: 999px;
-      background: var(--ios-sheet);
-      display: grid;
-      place-items: center;
-    }
-
-    .qr-circle {
-      width: 96px;
-      height: 96px;
-      border-radius: 999px;
-      background: #0a66d9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.14);
+      will-change: transform;
+      /* JS controls the translateY */
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    .qr-image-small {
-      width: 70%;
-      height: 70%;
-      object-fit: contain;
-      border-radius: 12px;
-    }
-
-    .sheet-mini-content {
-      width: 100%;
-      height: 100%;
-      padding: 76px 24px 22px;
+    /* ---- Peek section (always on top of sheet, visible when collapsed) ---- */
+    .sheet-peek {
+      flex-shrink: 0;
+      height: var(--peek);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      text-align: center;
-      color: var(--ios-text);
-    }
-
-    .sheet-text {
-      margin: 0;
-      font-size: 17px;
-      line-height: 1.35;
-      font-weight: 500;
-      letter-spacing: -0.01em;
-      color: #111;
-    }
-
-    /* ---- Expanded QR section (below mini sheet) ---- */
-    .qr-section {
-      background: var(--ios-sheet);
-      padding: 0 20px calc(40px + env(safe-area-inset-bottom));
+      justify-content: center;
+      gap: 10px;
+      padding-top: 10px;
     }
 
     .grab-handle {
@@ -317,13 +286,47 @@
       height: 5px;
       border-radius: 999px;
       background: rgba(0, 0, 0, 0.15);
-      margin: 0 auto 20px;
+    }
+
+    .qr-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      background: var(--ios-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .qr-image-small {
+      width: 64%;
+      height: 64%;
+      object-fit: contain;
+    }
+
+    .sheet-pull-text {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #111;
+      text-align: center;
+    }
+
+    /* ---- Expanded QR content (scrollable part below peek) ---- */
+    .sheet-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 20px calc(40px + env(safe-area-inset-bottom));
     }
 
     .qr-panel {
       background: #fff;
       border-radius: 24px;
-      padding: 28px 24px 24px;
+      padding: 24px 24px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -331,8 +334,8 @@
     }
 
     .qr-large {
-      width: min(240px, 52vw);
-      height: min(240px, 52vw);
+      width: min(220px, 56vw);
+      height: min(220px, 56vw);
       object-fit: contain;
     }
 
@@ -341,7 +344,7 @@
       height: 6px;
       background: #e5e5ea;
       border-radius: 999px;
-      margin-top: 22px;
+      margin-top: 18px;
       overflow: hidden;
     }
 
@@ -354,7 +357,7 @@
     }
 
     .timer-text {
-      margin-top: 14px;
+      margin-top: 12px;
       font-size: 14px;
       line-height: 1.4;
       color: var(--ios-blue);
@@ -363,7 +366,7 @@
     }
 
     .qr-info {
-      padding: 22px 4px 0;
+      padding: 20px 4px 0;
       color: var(--ios-text);
     }
 
@@ -407,19 +410,7 @@
       letter-spacing: 0.02em;
     }
 
-    .swipe-hint {
-      margin-top: 12px;
-      font-size: 12px;
-      line-height: 1;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.72);
-      opacity: 0;
-      transition: opacity 240ms ease;
-      pointer-events: none;
-    }
-
-    .swipe-hint.show { opacity: 1; }
-
+    /* ---- Install banner ---- */
     .install-banner {
       position: absolute;
       left: 12px;
@@ -440,7 +431,6 @@
     .install-banner strong { display: block; margin-bottom: 4px; font-size: 14px; }
 
     @media (max-width: 390px) {
-      .sheet-mini { height: 220px; }
       .slider-shell { width: 93vw; }
     }
 
@@ -467,55 +457,48 @@
       </div>
     </header>
 
-    <!-- Everything scrolls together as one tall page -->
-    <div class="page-scroll" id="pageScroll">
-
-      <div class="content" id="content">
-        <div class="slider-shell">
-          <div class="slider" id="slider">
-            <section class="slide" data-index="0">
-              <div class="card">
-                <img src="./page1.png" alt="Первая страница документа" />
-                <span class="page-number">1</span>
-              </div>
-            </section>
-            <section class="slide" data-index="1">
-              <div class="card">
-                <img src="./page2.png" alt="Вторая страница документа" />
-                <span class="page-number">2</span>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <div class="page-indicator-wrap">
-          <div class="pagination" id="pagination" aria-label="Индикатор страниц">
-            <span class="dot active" data-index="0"></span>
-            <span class="dot" data-index="1"></span>
-          </div>
-        </div>
-
-        <div class="swipe-hint" id="swipeHint">Смахните влево или вправо</div>
-      </div>
-
-      <!-- Mini bottom sheet -->
-      <div class="sheet-mini">
-        <div class="qr-holder">
-          <div class="qr-circle">
-            <div class="qr-circle">
-              <img src="./qr.png" alt="QR Code" class="qr-image-small" />
+    <!-- Card area — stays fixed, just blurs when sheet expands -->
+    <div class="content" id="content">
+      <div class="slider-shell">
+        <div class="slider" id="slider">
+          <section class="slide" data-index="0">
+            <div class="card">
+              <img src="./page1.png" alt="Первая страница документа" />
+              <span class="page-number">1</span>
             </div>
-          </div>
-        </div>
-        <div class="sheet-mini-content">
-          <p class="sheet-text">Потяните для просмотра QR кода</p>
+          </section>
+          <section class="slide" data-index="1">
+            <div class="card">
+              <img src="./page2.png" alt="Вторая страница документа" />
+              <span class="page-number">2</span>
+            </div>
+          </section>
         </div>
       </div>
 
-      <!-- Expanded QR content (hidden below fold) -->
-      <div class="qr-section" id="qrSection">
-        <div class="grab-handle"></div>
+      <div class="page-indicator-wrap">
+        <div class="pagination" id="pagination" aria-label="Индикатор страниц">
+          <span class="dot active" data-index="0"></span>
+          <span class="dot" data-index="1"></span>
+        </div>
+      </div>
 
+      <div class="swipe-hint" id="swipeHint">Смахните влево или вправо</div>
+    </div>
+
+    <!-- Bottom sheet — slides up from the bottom -->
+    <div class="bottom-sheet" id="bottomSheet">
+      <!-- Always-visible peek: handle + icon + text -->
+      <div class="sheet-peek">
+        <div class="grab-handle"></div>
+        <div class="qr-circle">
+          <img src="./qr.png" alt="QR" class="qr-image-small" />
+        </div>
+        <p class="sheet-pull-text">Потяните для просмотра QR кода</p>
+      </div>
+
+      <!-- Expanded body: QR panel + info (scrollable) -->
+      <div class="sheet-body" id="sheetBody">
         <div class="qr-panel">
           <img src="./qr.png" alt="QR Code" class="qr-large" />
           <div class="timer-bar-track">
@@ -540,34 +523,33 @@
           </div>
         </div>
       </div>
-
     </div>
 
   </div>
 
   <script>
     (function () {
-      const app = document.querySelector(".app");
-      const slider = document.getElementById("slider");
-      const slides = Array.from(slider.querySelectorAll(".slide"));
-      const dots = Array.from(document.querySelectorAll(".dot"));
-      const swipeHint = document.getElementById("swipeHint");
+      const app        = document.querySelector(".app");
+      const slider     = document.getElementById("slider");
+      const slides     = Array.from(slider.querySelectorAll(".slide"));
+      const dots       = Array.from(document.querySelectorAll(".dot"));
+      const swipeHint  = document.getElementById("swipeHint");
       const backButton = document.getElementById("backButton");
       const installBanner = document.getElementById("installBanner");
-      const pageScroll = document.getElementById("pageScroll");
-      const content = document.getElementById("content");
-      const qrSection = document.getElementById("qrSection");
-      const timerBar = document.getElementById("timerBar");
-      const timerText = document.getElementById("timerText");
+      const content    = document.getElementById("content");
+      const bottomSheet = document.getElementById("bottomSheet");
+      const sheetBody  = document.getElementById("sheetBody");
+      const timerBar   = document.getElementById("timerBar");
+      const timerText  = document.getElementById("timerText");
       const tempPasswordEl = document.getElementById("tempPassword");
 
-      const ANIM_MS = 360;
+      const ANIM_MS = 380;
       const EASE = "cubic-bezier(0.22, 0.8, 0.2, 1)";
       const DIR_LOCK = 10;
       const TIMER_DURATION = 180;
+      const PEEK_PX = 160; // must match --peek in CSS
 
-      /* ============ SLIDER STATE ============ */
-
+      /* ======== SLIDER STATE ======== */
       const state = {
         current: 0,
         startX: 0,
@@ -576,31 +558,27 @@
         deltaY: 0,
         dragging: false,
         animating: false,
-        direction: null // 'h' | 'v' | 'page-scroll'
+        direction: null   // 'h' | 'v' | 'sheet'
       };
 
-      /* ============ PAGE SCROLL STATE ============ */
-
-      const scroll = {
-        offset: 0,       // current scroll Y offset (0 = top, negative = scrolled up)
-        maxTravel: 0,     // how far the page can scroll up
+      /* ======== SHEET STATE ======== */
+      const sheet = {
         expanded: false,
         dragging: false,
-        startY: 0,
-        deltaY: 0,
+        maxTravel: 0,        // sheetHeight - PEEK_PX
+        currentY: 0,         // current translateY of the sheet (0=expanded, maxTravel=collapsed)
         timerInterval: null,
         remaining: TIMER_DURATION
       };
 
-      function computeMaxTravel() {
-        scroll.maxTravel = qrSection.offsetHeight;
-      }
-
-      /* ============ SLIDER ============ */
-
-      function sliderWidth() { return slider.clientWidth; }
+      /* ---- helpers ---- */
+      function sliderWidth()  { return slider.clientWidth;  }
       function sliderHeight() { return slider.clientHeight; }
-      function other() { return state.current === 0 ? 1 : 0; }
+      function other()        { return state.current === 0 ? 1 : 0; }
+
+      function computeMaxTravel() {
+        sheet.maxTravel = bottomSheet.offsetHeight - PEEK_PX;
+      }
 
       function setDots() {
         dots.forEach((d, i) => d.classList.toggle("active", i === state.current));
@@ -608,63 +586,58 @@
 
       function positionSlide(el, x, y, animate) {
         el.style.transition = animate ? `transform ${ANIM_MS}ms ${EASE}` : "none";
-        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        el.style.transform  = `translate3d(${x}px, ${y}px, 0)`;
       }
 
       function placeIdle() {
-        // Both cards at (0,0) — stacked. Current card on top.
         positionSlide(slides[state.current], 0, 0, false);
-        positionSlide(slides[other()], 0, 0, false);
+        positionSlide(slides[other()],       0, 0, false);
         slides[state.current].classList.add("on-top");
         slides[other()].classList.remove("on-top");
         setDots();
       }
 
-      /* ============ PAGE SCROLL ============ */
+      /* ---- sheet position ---- */
+      function setSheet(y, animate) {
+        bottomSheet.style.transition = animate ? `transform ${ANIM_MS}ms ${EASE}` : "none";
+        bottomSheet.style.transform  = `translateY(${y}px)`;
+        sheet.currentY = y;
 
-      function setPageScroll(y, animate) {
-        pageScroll.style.transition = animate ? `transform 420ms ${EASE}` : "none";
-        pageScroll.style.transform = `translate3d(0, ${y}px, 0)`;
-        scroll.offset = y;
+        // Blur the card proportionally as sheet rises
+        const progress = sheet.maxTravel > 0
+          ? 1 - Math.max(0, Math.min(1, y / sheet.maxTravel))
+          : 0;
 
-        // Blur card proportionally
-        const progress = Math.min(1, Math.abs(y) / (scroll.maxTravel * 0.5));
         if (progress > 0.05) {
-          content.style.filter = `blur(${progress * 6}px) brightness(${1 - progress * 0.3})`;
-          content.style.opacity = String(1 - progress * 0.4);
+          content.style.filter  = `blur(${progress * 7}px) brightness(${1 - progress * 0.25})`;
+          content.style.opacity = String(1 - progress * 0.35);
         } else {
-          content.style.filter = "";
+          content.style.filter  = "";
           content.style.opacity = "";
         }
       }
 
       function snapExpanded(animate) {
-        scroll.expanded = true;
-        setPageScroll(-scroll.maxTravel, animate);
+        sheet.expanded = true;
+        setSheet(0, animate);
         startTimer();
       }
 
       function snapCollapsed(animate) {
-        scroll.expanded = false;
-        setPageScroll(0, animate);
+        sheet.expanded = false;
+        setSheet(sheet.maxTravel, animate);
       }
 
-      /* ============ UNIFIED TOUCH ============ */
+      /* ======== UNIFIED TOUCH ======== */
 
-      function isInSlider(target) {
-        return slider.contains(target);
-      }
-
-      function onStart(cx, cy, target) {
+      function onStart(cx, cy) {
         if (state.animating) return;
-
-        state.startX = cx;
-        state.startY = cy;
-        state.deltaX = 0;
-        state.deltaY = 0;
+        state.startX   = cx;
+        state.startY   = cy;
+        state.deltaX   = 0;
+        state.deltaY   = 0;
         state.direction = null;
-        state.dragging = true;
-
+        state.dragging  = true;
         computeMaxTravel();
       }
 
@@ -676,58 +649,63 @@
         const ax = Math.abs(state.deltaX);
         const ay = Math.abs(state.deltaY);
 
-        // Lock direction
+        /* Direction locking */
         if (!state.direction) {
           if (ax < DIR_LOCK && ay < DIR_LOCK) return;
 
           if (ax >= ay) {
-            // Horizontal → card swipe (only when not expanded)
-            if (!scroll.expanded) {
+            // Horizontal → card swipe (only when sheet is collapsed)
+            if (!sheet.expanded) {
               state.direction = "h";
             } else {
               state.dragging = false;
               return;
             }
           } else {
-            // Vertical — decide: card page-switch or page-scroll?
-            // If expanded, always page-scroll (to allow collapsing)
-            // If collapsed and touch started on slider area, it's a card vertical swipe
-            // If collapsed and touch started outside slider, it's page-scroll
+            // Vertical → either card-page or sheet gesture
             const sliderRect = slider.getBoundingClientRect();
             const touchedSlider = (
               state.startX >= sliderRect.left && state.startX <= sliderRect.right &&
-              state.startY >= sliderRect.top && state.startY <= sliderRect.bottom
+              state.startY >= sliderRect.top  && state.startY <= sliderRect.bottom
             );
 
-            if (scroll.expanded) {
-              state.direction = "page-scroll";
+            if (sheet.expanded) {
+              // Only allow collapsing if sheetBody is scrolled to the top
+              if (state.deltaY > 0 && sheetBody.scrollTop <= 0) {
+                state.direction = "sheet";
+              } else {
+                // Let the inner scroll handle it
+                state.dragging = false;
+                return;
+              }
             } else if (touchedSlider) {
-              state.direction = "v";
+              state.direction = "v";      // card page-switch
             } else {
-              state.direction = "page-scroll";
+              state.direction = "sheet";  // sheet open gesture
             }
           }
         }
 
         if (state.direction === "h") {
-          // Only the top card moves; the other stays at (0,0) underneath
           positionSlide(slides[state.current], state.deltaX, 0, false);
+
         } else if (state.direction === "v") {
           positionSlide(slides[state.current], 0, state.deltaY, false);
-        } else if (state.direction === "page-scroll") {
+
+        } else if (state.direction === "sheet") {
           let newY;
-          if (scroll.expanded) {
-            newY = -scroll.maxTravel + state.deltaY;
-            // Clamp: can't go above 0 (collapsed), rubber-band if overscrolled up
-            if (newY > 0) newY = newY * 0.3;
-            if (newY < -scroll.maxTravel) newY = -scroll.maxTravel + (newY + scroll.maxTravel) * 0.3;
-          } else {
+          if (sheet.expanded) {
+            // Dragging down to close: baseY=0, positive deltaY = sheet moving down
             newY = state.deltaY;
-            // Only allow upward pull (negative). Rubber-band for downward
-            if (newY > 0) newY = newY * 0.3;
-            if (newY < -scroll.maxTravel) newY = -scroll.maxTravel + (newY + scroll.maxTravel) * 0.3;
+            if (newY < 0) newY = newY * 0.25;                               // rubber-band up
+            if (newY > sheet.maxTravel) newY = sheet.maxTravel + (newY - sheet.maxTravel) * 0.25; // rubber-band past closed
+          } else {
+            // Dragging up to open: baseY=maxTravel, negative deltaY = sheet moving up
+            newY = sheet.maxTravel + state.deltaY;
+            if (newY < 0) newY = newY * 0.25;                               // rubber-band past open
+            if (newY > sheet.maxTravel) newY = sheet.maxTravel + (newY - sheet.maxTravel) * 0.25;
           }
-          setPageScroll(newY, false);
+          setSheet(newY, false);
         }
       }
 
@@ -737,24 +715,20 @@
 
         if (state.direction === "h") {
           const w = sliderWidth();
-          const shouldSwitch = Math.abs(state.deltaX) > w * 0.2;
           state.animating = true;
-          if (shouldSwitch) {
-            // Animate top card off-screen, other is already at (0,0)
+          if (Math.abs(state.deltaX) > w * 0.2) {
             positionSlide(slides[state.current], (state.deltaX < 0 ? -1 : 1) * w, 0, true);
             state.current = other();
             setDots();
           } else {
-            // Bounce top card back
             positionSlide(slides[state.current], 0, 0, true);
           }
           setTimeout(() => { state.animating = false; placeIdle(); }, ANIM_MS + 20);
 
         } else if (state.direction === "v") {
           const h = sliderHeight();
-          const shouldSwitch = Math.abs(state.deltaY) > h * 0.2;
           state.animating = true;
-          if (shouldSwitch) {
+          if (Math.abs(state.deltaY) > h * 0.2) {
             positionSlide(slides[state.current], 0, (state.deltaY < 0 ? -1 : 1) * h, true);
             state.current = other();
             setDots();
@@ -763,61 +737,50 @@
           }
           setTimeout(() => { state.animating = false; placeIdle(); }, ANIM_MS + 20);
 
-        } else if (state.direction === "page-scroll") {
-          const threshold = scroll.maxTravel * 0.2;
-          if (scroll.expanded) {
-            if (state.deltaY > threshold) {
-              snapCollapsed(true);
-            } else {
-              snapExpanded(true);
-            }
+        } else if (state.direction === "sheet") {
+          const threshold = sheet.maxTravel * 0.22;
+          if (sheet.expanded) {
+            if (state.deltaY > threshold) snapCollapsed(true);
+            else                          snapExpanded(true);
           } else {
-            if (state.deltaY < -threshold) {
-              snapExpanded(true);
-            } else {
-              snapCollapsed(true);
-            }
+            if (state.deltaY < -threshold) snapExpanded(true);
+            else                           snapCollapsed(true);
           }
         }
 
         state.direction = null;
       }
 
-      /* ============ EVENTS ============ */
+      /* ======== EVENTS ======== */
 
       app.addEventListener("touchstart", (e) => {
         if (e.touches.length !== 1) return;
-        onStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+        onStart(e.touches[0].clientX, e.touches[0].clientY);
       }, { passive: true });
 
       app.addEventListener("touchmove", (e) => {
         if (e.touches.length !== 1) return;
         onMove(e.touches[0].clientX, e.touches[0].clientY);
-        if (state.direction === "page-scroll" || state.direction === "v") {
+        if (state.direction === "sheet" || state.direction === "v") {
           e.preventDefault();
         }
       }, { passive: false });
 
-      app.addEventListener("touchend", onEnd);
+      app.addEventListener("touchend",    onEnd);
       app.addEventListener("touchcancel", onEnd);
 
-      app.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        onStart(e.clientX, e.clientY, e.target);
-      });
-      window.addEventListener("mousemove", (e) => onMove(e.clientX, e.clientY));
-      window.addEventListener("mouseup", onEnd);
+      app.addEventListener("mousedown", (e) => { e.preventDefault(); onStart(e.clientX, e.clientY); });
+      window.addEventListener("mousemove",  (e) => onMove(e.clientX, e.clientY));
+      window.addEventListener("mouseup",    onEnd);
       window.addEventListener("mouseleave", onEnd);
 
-      /* ============ DOT CLICKS ============ */
-
+      /* ======== DOT CLICKS ======== */
       dots.forEach((dot) => {
         dot.addEventListener("click", () => {
           const target = Number(dot.dataset.index);
           if (target === state.current || state.animating) return;
           state.animating = true;
           const w = sliderWidth();
-          // Target is already at (0,0) underneath. Slide current card off.
           positionSlide(slides[state.current], -w, 0, true);
           state.current = target;
           setDots();
@@ -826,40 +789,39 @@
       });
 
       backButton.addEventListener("click", () => {
-        if (scroll.expanded) { snapCollapsed(true); return; }
+        if (sheet.expanded) { snapCollapsed(true); return; }
         if (window.history.length > 1) window.history.back();
       });
 
-      /* ============ TIMER & PASSWORD ============ */
+      /* ======== TIMER & PASSWORD ======== */
 
       function generatePassword() {
         return String(Math.floor(100000 + Math.random() * 900000));
       }
 
       function updateTimerDisplay() {
-        const mins = Math.floor(scroll.remaining / 60);
-        const secs = scroll.remaining % 60;
+        const mins = Math.floor(sheet.remaining / 60);
+        const secs = sheet.remaining % 60;
         timerText.innerHTML = `До истечения действия временного QR-кода осталось<br>${mins} мин ${String(secs).padStart(2, "0")} секунд`;
-        timerBar.style.width = `${(scroll.remaining / TIMER_DURATION) * 100}%`;
+        timerBar.style.width = `${(sheet.remaining / TIMER_DURATION) * 100}%`;
       }
 
       function startTimer() {
-        if (scroll.timerInterval) return;
-        scroll.remaining = TIMER_DURATION;
+        if (sheet.timerInterval) return;
+        sheet.remaining = TIMER_DURATION;
         tempPasswordEl.textContent = generatePassword();
         updateTimerDisplay();
-
-        scroll.timerInterval = setInterval(() => {
-          scroll.remaining--;
-          if (scroll.remaining <= 0) {
-            scroll.remaining = TIMER_DURATION;
+        sheet.timerInterval = setInterval(() => {
+          sheet.remaining--;
+          if (sheet.remaining <= 0) {
+            sheet.remaining = TIMER_DURATION;
             tempPasswordEl.textContent = generatePassword();
           }
           updateTimerDisplay();
         }, 1000);
       }
 
-      /* ============ UTILS ============ */
+      /* ======== UTILS ======== */
 
       function showHint() {
         if (!swipeHint) return;
@@ -886,28 +848,22 @@
         }
       }
 
-      window.addEventListener("resize", () => {
+      function onResize() {
         computeMaxTravel();
         placeIdle();
-        if (scroll.expanded) snapExpanded(false);
-        else snapCollapsed(false);
-      });
+        if (sheet.expanded) snapExpanded(false);
+        else                snapCollapsed(false);
+      }
 
-      window.addEventListener("orientationchange", () => {
-        setTimeout(() => {
-          computeMaxTravel();
-          placeIdle();
-          if (scroll.expanded) snapExpanded(false);
-          else snapCollapsed(false);
-        }, 150);
-      });
+      window.addEventListener("resize", onResize);
+      window.addEventListener("orientationchange", () => setTimeout(onResize, 150));
 
       window.addEventListener("load", async () => {
         state.current = 0;
         placeIdle();
         computeMaxTravel();
         snapCollapsed(false);
-        setTimeout(showHint, 500);
+        setTimeout(showHint, 600);
         initInstallBanner();
         await registerSW();
       });
