@@ -270,17 +270,27 @@
       left: 50%;
       top: 0;
       transform: translate(-50%, -50%);
-      width: 88px;
-      height: 88px;
+      width: 104px;
+      height: 104px;
+      border-radius: 999px;
+      background: var(--ios-sheet); /* white/off-white ring */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transition: opacity 240ms ease, transform 240ms ease;
+    }
+
+    .qr-circle-inner {
+      width: 86px;
+      height: 86px;
       border-radius: 999px;
       background: var(--ios-blue);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      z-index: 3;
-      box-shadow: 0 6px 16px rgba(10, 102, 217, 0.32);
-      transition: opacity 240ms ease, transform 240ms ease;
+      box-shadow: 0 4px 12px rgba(10, 102, 217, 0.28);
     }
 
     .qr-image-small {
@@ -501,9 +511,11 @@
 
     <!-- Bottom sheet — slides up from the bottom -->
     <div class="bottom-sheet" id="bottomSheet">
-      <!-- Floating blue QR circle — half above sheet edge when collapsed -->
+      <!-- Floating blue QR circle with white ring — half above sheet edge -->
       <div class="qr-circle" id="qrCircle">
-        <img src="./qr.png" alt="QR" class="qr-image-small" />
+        <div class="qr-circle-inner">
+          <img src="./qr.png" alt="QR" class="qr-image-small" />
+        </div>
       </div>
 
       <!-- Peek area (always at top of sheet) -->
