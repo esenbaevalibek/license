@@ -125,12 +125,12 @@
     .content {
       position: absolute;
       inset: 0;
-      padding-top: calc(max(8px, env(safe-area-inset-top)) + 52px + 16px);
+      padding-top: calc(max(8px, env(safe-area-inset-top)) + 52px + 36px);
       padding-bottom: var(--peek);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       padding-left: 14px;
       padding-right: 14px;
       transition: filter 320ms ease, opacity 320ms ease;
@@ -214,27 +214,22 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
-      min-width: 42px;
-      height: 20px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.10);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      gap: 6px;
+      padding: 0;
+      background: transparent;
     }
 
     .dot {
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.4);
-      transition: transform 0.22s ease, background-color 0.22s ease;
+      background: rgba(255, 255, 255, 0.45);
+      transition: width 0.28s ease, background-color 0.28s ease;
     }
 
     .dot.active {
+      width: 20px;
       background: #ffffff;
-      transform: scale(1.1);
     }
 
     .swipe-hint {
@@ -263,48 +258,65 @@
       border-top-right-radius: 30px;
       box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.14);
       will-change: transform;
-      /* JS controls the translateY */
-      overflow: hidden;
+      /* Allow the QR circle to protrude above the sheet edge */
+      overflow: visible;
       display: flex;
       flex-direction: column;
     }
 
-    /* ---- Peek section (always on top of sheet, visible when collapsed) ---- */
-    .sheet-peek {
-      flex-shrink: 0;
-      height: var(--peek);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding-top: 10px;
-    }
-
-    .grab-handle {
-      width: 36px;
-      height: 5px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.15);
-    }
-
+    /* ---- Floating QR circle (overlaps the sheet's top edge) ---- */
     .qr-circle {
-      width: 72px;
-      height: 72px;
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translate(-50%, -50%);
+      width: 88px;
+      height: 88px;
       border-radius: 999px;
       background: var(--ios-blue);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      flex-shrink: 0;
+      z-index: 3;
+      box-shadow: 0 6px 16px rgba(10, 102, 217, 0.32);
+      transition: opacity 240ms ease, transform 240ms ease;
     }
 
     .qr-image-small {
-      width: 64%;
-      height: 64%;
+      width: 68%;
+      height: 68%;
       object-fit: contain;
     }
+
+    /* ---- Peek section (always at top of sheet) ---- */
+    .sheet-peek {
+      position: relative;
+      flex-shrink: 0;
+      height: var(--peek);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 54px; /* leave room for bottom-half of floating circle */
+    }
+
+    .grab-handle {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      transition: opacity 240ms ease;
+    }
+
+    .bottom-sheet.expanded .grab-handle { opacity: 1; }
+    .bottom-sheet.expanded .qr-circle   { opacity: 0; transform: translate(-50%, -50%) scale(0.8); pointer-events: none; }
+    .bottom-sheet.expanded .sheet-pull-text { opacity: 0; }
 
     .sheet-pull-text {
       margin: 0;
@@ -312,6 +324,7 @@
       font-weight: 500;
       color: #111;
       text-align: center;
+      transition: opacity 240ms ease;
     }
 
     /* ---- Expanded QR content (scrollable part below peek) ---- */
@@ -488,12 +501,14 @@
 
     <!-- Bottom sheet — slides up from the bottom -->
     <div class="bottom-sheet" id="bottomSheet">
-      <!-- Always-visible peek: handle + icon + text -->
+      <!-- Floating blue QR circle — half above sheet edge when collapsed -->
+      <div class="qr-circle" id="qrCircle">
+        <img src="./qr.png" alt="QR" class="qr-image-small" />
+      </div>
+
+      <!-- Peek area (always at top of sheet) -->
       <div class="sheet-peek">
         <div class="grab-handle"></div>
-        <div class="qr-circle">
-          <img src="./qr.png" alt="QR" class="qr-image-small" />
-        </div>
         <p class="sheet-pull-text">Потяните для просмотра QR кода</p>
       </div>
 
@@ -619,12 +634,14 @@
 
       function snapExpanded(animate) {
         sheet.expanded = true;
+        bottomSheet.classList.add("expanded");
         setSheet(0, animate);
         startTimer();
       }
 
       function snapCollapsed(animate) {
         sheet.expanded = false;
+        bottomSheet.classList.remove("expanded");
         setSheet(sheet.maxTravel, animate);
       }
 
